@@ -31,6 +31,7 @@ PGTDE::psql($node, 'postgres', "CHECKPOINT;");
 
 PGTDE::append_to_result_file("-- kill -9");
 $node->kill9();
+sleep(3);    # sanitizers slow down the kill, let server die in peace
 
 PGTDE::append_to_result_file("-- server start");
 $node->start;

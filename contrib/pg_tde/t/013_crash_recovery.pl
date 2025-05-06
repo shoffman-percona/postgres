@@ -18,10 +18,6 @@ $node->append_conf(
 	'postgresql.conf', q{
 checkpoint_timeout = 1h
 shared_preload_libraries = 'pg_tde'
-
-## Workaround to make tests pass with enabled UBSAN
-## https://www.postgresql.org/message-id/flat/1775221.1658699459%40sss.pgh.pa.us#18ac2074d2383f232a20bf8b7b32c526
-max_stack_depth = 8MB
 });
 $node->start;
 
@@ -51,6 +47,7 @@ PGTDE::psql($node, 'postgres', "ALTER SYSTEM SET pg_tde.wal_encrypt = 'on';");
 
 PGTDE::append_to_result_file("-- kill -9");
 $node->kill9;
+sleep(3);    # sanitizers slow down the kill, let server die in peace
 
 PGTDE::append_to_result_file("-- server start");
 $node->start;
@@ -65,6 +62,8 @@ PGTDE::psql($node, 'postgres',
 PGTDE::psql($node, 'postgres', "INSERT INTO test_enc (x) VALUES (3), (4);");
 PGTDE::append_to_result_file("-- kill -9");
 $node->kill9;
+sleep(3);    # sanitizers slow down the kill, let server die in peace
+
 PGTDE::append_to_result_file("-- server start");
 PGTDE::append_to_result_file(
 	"-- check that pg_tde_save_principal_key_redo hasn't destroyed a WAL key created during the server start"
@@ -81,6 +80,8 @@ PGTDE::psql($node, 'postgres',
 PGTDE::psql($node, 'postgres', "INSERT INTO test_enc (x) VALUES (5), (6);");
 PGTDE::append_to_result_file("-- kill -9");
 $node->kill9;
+sleep(3);    # sanitizers slow down the kill, let server die in peace
+
 PGTDE::append_to_result_file("-- server start");
 PGTDE::append_to_result_file(
 	"-- check that the key rotation hasn't destroyed a WAL key created during the server start"
@@ -93,6 +94,8 @@ PGTDE::psql($node, 'postgres',
 	"CREATE TABLE test_enc2 (x int PRIMARY KEY) USING tde_heap;");
 PGTDE::append_to_result_file("-- kill -9");
 $node->kill9;
+sleep(3);    # sanitizers slow down the kill, let server die in peace
+
 PGTDE::append_to_result_file("-- server start");
 PGTDE::append_to_result_file(
 	"-- check redo of the smgr internal key creation when the key is on disk"
